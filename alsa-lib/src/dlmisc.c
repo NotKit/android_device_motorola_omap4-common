@@ -182,12 +182,15 @@ void *snd_dlsym(void *handle, const char *name, const char *version)
 	}
 #endif
 #ifdef HAVE_LIBDL
-	if (version) {
-		err = snd_dlsym_verify(handle, name, version);
-		if (err < 0)
-			return NULL;
+	int (*func)(snd_config_t *root, snd_config_t *config, snd_config_t **dst, snd_config_t *private_data) = NULL;
+
+	func = dlsym(handle, name);
+
+	if (!func) {
+		handle = dlopen("libasound.so", RTLD_NOW);
+		func = dlsym(handle, name);
 	}
-	return dlsym(handle, name);
+	return func;
 #else
 	return NULL;
 #endif
